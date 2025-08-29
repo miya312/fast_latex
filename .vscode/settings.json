@@ -1,0 +1,190 @@
+{
+	// https://gist.github.com/Yarakashi-Kikohshi/948720cb69d0baafe71e62ec6cb2cb54
+	"workbench.colorTheme": "Default Dark+",
+	"editor.tokenColorCustomizations": {
+		"[Default Dark+]": {
+			// "comments": {
+			// 	"foreground": "#ac1d1d",
+			// 	"fontStyle": ""
+			// },
+			"textMateRules": [
+				{
+					"scope": ["constant.character.escape.tex"],
+					"settings": {
+						"foreground": "#D7BA7D",
+						"fontStyle": ""
+					}
+				},
+				{
+					"scope": ["keyword.control.label.latex"],
+					"settings": {
+						"foreground": "#C586C0",
+						"fontStyle": ""
+					}
+				},
+				{
+					"scope": [
+						"variable.parameter.definition.label.latex",
+						"constant.other.reference.label.latex"
+					],
+					"settings": {
+						"foreground": "#9CDCFE",
+						"fontStyle": ""
+					}
+				},
+				{
+					// inline math element: abcxyz
+					// display math element: abcxyz
+					"scope": [
+						"support.class.math.block.environment.latex",
+						"support.class.math.block.tex"
+					],
+					"settings": {
+						"foreground": "#c4f5a9",
+						"fontStyle": "italic"
+					}
+				},
+				{
+					// inline math: $
+					// environment: \begin \end
+					"scope": [
+						"support.function.be.latex",
+						"punctuation.definition.string.begin.tex",
+						"punctuation.definition.string.end.tex"
+					],
+					"settings": {
+						"foreground": "#c9a351",
+						"fontStyle": ""
+					}
+				},
+				{
+					// punctuation for math: + - * _ ^
+					"scope": ["punctuation.math.operator.latex"],
+					"settings": {
+						"foreground": "#C586C0",
+						// #C586C0
+						"fontStyle": ""
+					}
+				},
+				{
+					// commands for math: \frac \sqrt ...etc
+					"scope": [
+						"constant.character.math.tex",
+						"constant.other.general.math.tex",
+						"constant.other.math.tex"
+					],
+					"settings": {
+						"foreground": "#6a8bd1",
+						// #569CD6
+						"fontStyle": ""
+					}
+				},
+				{
+					// \\ and & for equations
+					"scope": ["keyword.control.equation"],
+					"settings": {
+						"foreground": "#C586C0",
+						"fontStyle": ""
+					}
+				},
+				{
+					// () and {} and []
+					"scope": [
+						"punctuation.math.begin.bracket.curly",
+						"punctuation.math.end.bracket.curly",
+						"punctuation.math.begin.bracket.round",
+						"punctuation.math.end.bracket.round",
+						"punctuation.definition.brackets.tex",
+						"punctuation.definition.arguments.begin.latex",
+						"punctuation.definition.arguments.end.latex"
+					],
+					"settings": {
+						"foreground": "#D4D4D4",
+						"fontStyle": ""
+					}
+				}
+			]
+		}
+	},
+	"editor.unicodeHighlight.allowedCharacters": {
+		"　": true
+	},
+	"editor.bracketPairColorization.enabled": true,
+	"editor.language.colorizedBracketPairs": [
+		["‘", "’"],
+		["“", "”"],
+		["(", ")"],
+		["（", "）"],
+		["｟", "｠"],
+		["[", "]"],
+		["［", "］"],
+		["〚", "〛"],
+		["〔", "〕"],
+		["{", "}"],
+		["｛", "｝"],
+		["〈", "〉"],
+		["《", "》"],
+		["「", "」"],
+		["『", "』"],
+		["【", "】"],
+		["〖", "〗"],
+		["〝", "〟"],
+		// ["|", "|"]
+	],
+	"hsnips.hsnipsPath": "${workspaceFolder}/.vscode",
+	"todo-tree.regex.regex": "((//|#|%|<!--|;|/\\*|^)\\s*($TAGS)|\\\\TODO|^\\s*- \\[ \\])", // % TODO, \TODOに反応させる
+	"better-comments.tags": [
+		{
+			"tag": "!",
+			"color": "#FF2D00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "?",
+			"color": "#fff09a",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "//",
+			"color": "#474747",
+			"strikethrough": true,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "todo",
+			"color": "#FF8C00",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		},
+		{
+			"tag": "*",
+			"color": "#98C379",
+			"strikethrough": false,
+			"underline": false,
+			"backgroundColor": "transparent",
+			"bold": false,
+			"italic": false
+		}
+	],
+	"latex-workshop.latex.outDir": "./.tex_intermediates/", //auxファイルのある場所にする(refで補完が効くようになる)
+	"cSpell.words": [
+		"acousto",
+		"nondemolition",
+		"quantumoptics"
+	],
+
+}

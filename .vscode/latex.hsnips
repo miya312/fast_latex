@@ -1,0 +1,66 @@
+global
+function math(context) {
+    return context.scopes.some(s => s.startsWith("meta.math"));
+}
+function text(context) {
+    return !context.scopes.some(s => s.startsWith("meta.math"));
+}
+endglobal
+
+context math(context)
+snippet `(?<!\\[A-Za-z]*)h([a-zA-Z0-9])` "hat" Aw
+`` rv = `\\hat{${m[1]}}` ``
+endsnippet
+context math(context)
+snippet `(?<!\\[A-Za-z]*)b([a-zA-Z])` "bold" Aw
+`` rv = `\\bm{${m[1]}}` ``
+endsnippet
+context math(context)
+snippet `(?<!\\[A-Za-z]*)k([a-zA-Z0-9])` "ket" Aw
+`` rv = `\\ket{${m[1]}}` ``
+endsnippet
+
+context math(context)
+snippet ur "upper mathrm" Ai
+^\mathrm{$0}
+endsnippet
+
+context math(context)
+snippet lr "lower mathrm" Ai
+_\mathrm{$0}
+endsnippet
+
+context math(context)
+snippet `(?<!\\[A-Za-z]*)u([a-zA-Z0-9])` "upper" Aw
+``
+    if(m[1] === "d"){
+        rv = "^\\dag";
+    }else if(m[1] === "p"){
+        rv = "^\\prime";
+    }else{
+        rv = `^{${m[1]}}`;
+    }
+``
+endsnippet
+
+context math(context)
+snippet com "[,]" Aw
+\ab[$1,\; $0]
+endsnippet
+
+context math(context)
+snippet space "space" w
+\;
+endsnippet
+
+# ! ----------------------------- text context ---------------------------------------------!
+# context text(context)
+snippet eq "equation" wib
+\begin{equation}
+	$0
+\end{equation}
+endsnippet
+# context math(context)
+# snippet ve "varepsilon" Aw
+# \varepsilon
+# endsnippet

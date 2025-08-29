@@ -1,0 +1,264 @@
+%このファイルではプリアンブル部分をまとめて書いている
+%texworks -stylesheet .\texlive\2022\bin\win32\user.cssは、texの文字だか背景だかを変化させるファイル
+\usepackage[dvipdfmx]{graphicx,xcolor}
+
+\usepackage[export]{adjustbox} % includegraphicsなどでmax/min width/heightを使えるようにする
+% dvipdfmxは日本語のときのみかく
+\usepackage{amsmath, amssymb, amsfonts, mathtools} % おまじない
+
+\usepackage[top=20truemm,bottom=20truemm,left=25truemm,right=20truemm, includeheadfoot, dvipdfmx]{geometry} % 余白の設定 includeheadfootでヘッダー、フッターを含めて空白を開ける 恐らくfancyhdrよりも前にする必要がある
+
+\usepackage{braket, derivative} % braket, 微分
+\usepackage{physics2} % physicsの代わり
+	\usephysicsmodule{ab, doubleprod, diagmat, xmat}
+	\renewcommand{\Re}{\operatorname{Re}}
+	\renewcommand{\Im}{\operatorname{Im}}
+	\newcommand{\Tr}{\operatorname{Tr}}
+	\newcommand{\rank}{\operatorname{rank}}
+	\newcommand{\order}{\mathcal{O}}
+
+% \usepackage{mathcomp} % 単位 physicsを使う場合はmathcomp
+\usepackage{siunitx} % 単位 physicsを使う場合はqtyが衝突するので使わない
+\usepackage[version=4]{mhchem} % 化学式
+
+\setcounter{tocdepth}{2} % 目次の深さ
+\usepackage[dvipdfmx]{hyperref} % リンク付きref
+\usepackage{pxjahyper} % 日本語refの文字化け防止 (u)pLaTexのみ
+	\hypersetup{%
+		%  dvipdfmx,
+		setpagesize=false,%
+		bookmarks=true,%
+		bookmarksdepth=tocdepth,%
+		bookmarksnumbered=true,%
+		%  allcolors=blue,%
+		hidelinks,
+		pdftitle={タイトル},
+		pdfauthor={著者の名前},
+	}
+
+\usepackage{nameref} % 章の名前を参照
+% \usepackage{wtref} % refコマンドを増やす
+	% \newref{sec, eq}
+	% \newref[scope=chapter]{fig, tb}
+	% \setrefstyle{eq}{refcmd=(\ref{#1})}
+	% \setrefstyle{sec}{prefix=第, suffx=章}
+\usepackage{zref-xr} % ファイルをまたいだref。ref系のパッケージの最後に読み込む
+	\zxrsetup{toltxlabel}
+
+\usepackage{ascmac} % 枠
+\usepackage{bm} % 太字
+
+\usepackage{here} % 図表の位置
+\usepackage{enumitem} % リスト
+\usepackage{multirow} % 表で複数マスにまたがるもの
+% \usepackage{tikz} % tikz pgfplotsを読み込むと自動で読み込まれるっぽい
+% \usetikzlibrary{calc}
+\usepackage{pgfplotstable, pgfplots} % 表, グラフ
+	\pgfplotsset{
+		compat=1.18,
+		table/col sep=comma
+	}
+	\usetikzlibrary{calc}
+\usepackage{csvsimple} % csv読み込み
+\usepackage[]{caption} % キャプション
+\usepackage[subrefformat=parens]{subcaption} % subキャプション
+	\captionsetup{compatibility=false}
+
+% \usepackage[compress=false]{graphicscache} % 画像のキャッシュ(動いてない)
+\usepackage{fancyhdr} % ヘッダー
+	\pagestyle{fancy}
+	\lhead{\leftmark} %ヘッダ左
+	\chead{} %ヘッダ中央
+	\rhead{\rightmark} %ヘッダ右．コンパイルした日付を表示
+	\renewcommand{\chaptermark}[1]{\markboth{第\ \normalfont\thechapter\ 章~#1}{}}
+	%\renewcommand{\sectionmark}[1]{\markright{\thesection #1}{}}
+	\lfoot{} %フッタ左
+	\cfoot{\thepage} %フッタ中央．ページ番号を表示
+	\rfoot{} %フッタ右
+	% \renewcommand{\headrulewidth}{} %ヘッダの罫線
+	% \renewcommand{\footrulewidth}{} %フッタの罫線
+
+\usepackage{environ, ifthen, xparse, comment} % 環境の定義, if文, コマンド定義, コメントアウト
+% \usepackage{dirtree} % ディレクトリツリー
+
+\usepackage[deluxe]{otf} % utf入力 pxchfonの設定によっては必須
+\usepackage[ipaex]{pxchfon} % フォント埋め込み(文字化け防止)
+% \usepackage[english, japanese]{babel}
+\usepackage[style=phys, articletitle=false, biblabel=brackets, chaptertitle=false, pageranges=false]{biblatex} % bib
+	% https://qiita.com/shiro_takeda/items/fac1351495f32c224a28
+	% \renewbibmacro{in:}{} % in: Some journal の "in:" を取る
+	% https://paper3510mm.github.io/latex/biblatex.html
+	\addbibresource{../bib/refs.bib}
+	\ExecuteBibliographyOptions{
+		sortcites=true,
+		% backref=true,
+		date=year
+	}
+
+	% 日本語文章への対応
+	% 下記参考資料ではlangidにenglishなどjapanese以外がある場合はエラーを吐くため、japaneseのみに反応するようにしてenglishがあっても大丈夫なようにしている。
+	% http://granular.blog39.fc2.com/blog-entry-76.html
+	% https://tex.stackexchange.com/questions/498682/disabling-the-printing-of-language-only-while-using-the-macro-based-on-language
+	\newbibmacro*{finalnamedelim:japanese}{\multinamedelim}
+
+	\renewcommand*{\finalnamedelim}{%
+		\iffieldequalstr{langid}{japanese}
+		{\usebibmacro*{finalnamedelim:\strfield{langid}}}
+		{\ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
+			\addspace\bibstring{and}\space}}
+
+	\newbibmacro*{name:given-family:japanese}[4]{%
+		\usebibmacro{name:delim}{#1#2}%
+		\usebibmacro{name:hook}{#1#2}%
+		#1\bibnamedelimc#2}
+
+	\DeclareNameFormat{given-family}{%
+		\iffieldequalstr{langid}{japanese}
+		{\usebibmacro*{name:given-family:\strfield{langid}}
+			{\namepartfamily}
+			{\namepartgiven}
+			{\namepartprefix}
+			{\namepartsuffix}}%
+		{\ifgiveninits
+			{\usebibmacro{name:given-family}
+				{\namepartfamily}
+				{\namepartgiveni}
+				{\namepartprefix}
+				{\namepartsuffix}}
+			{\usebibmacro{name:given-family}
+				{\namepartfamily}
+				{\namepartgiven}
+				{\namepartprefix}
+				{\namepartsuffix}}}
+		\usebibmacro{name:andothers}}
+
+
+% 以下コマンド定義 -----------------------------------------------------------------
+\NewDocumentCommand{\TODO}{m}{{\Large \textcolor{red}{!!TODO!! #1}}}
+\newcommand{\intii}{\int_{-\infty}^{\infty}}
+\newcommand{\intzi}{\int_{0}^{\infty}}
+\newcommand{\intiz}{\int_{-\infty}^{0}}
+
+\newcommand{\ctext}[1]{\raise0.2ex\hbox{\textcircled{\scriptsize{#1}}}} % https://livingdead0812.hatenablog.com/entry/20161005/1475654232
+
+\makeatletter
+\renewcommand{\chapter}{% https://qiita.com/hermite2053/items/d869f8673838080a238b
+	\if@openleft\cleardoublepage\else
+	\if@openright\cleardoublepage\else\clearpage\fi\fi
+	%\plainifnotempty %元: \thispagestyle{plain}
+	\global\@topnum\z@
+	\if@english \@afterindentfalse \else \@afterindenttrue \fi
+	\secdef
+	{\@omit@numberfalse\@chapter}%
+	{\@omit@numbertrue\@schapter}}
+\makeatother
+
+% csvをプロットする
+% #1 [] : 表示場所, default H (Hはhtbpと一緒に使わない!)
+% #2 {} : キャプション
+% #3 {} : axisのオプション: xlabel, ylabelなど
+% #4 {} : addplotのオプション: x index, y indexなど
+% #5 {} : csvのパス
+% #6 [] : ラベル, default #2
+% #7 [] : ラベルの fig: の部分, default fig:
+\NewDocumentCommand{\plotcsv}{O{H} m m m m o o}{
+	\begin{figure}[#1]
+		\centering
+		\begin{tikzpicture}
+			\begin{axis}[
+				height=13\baselineskip,
+				width=0.8\columnwidth,
+				#3
+			]
+				\addplot table [only marks,#4] {#5};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{#2}\label{\IfValueTF{#7}{#7}{fig:}\IfValueTF{#6}{#6}{#2}}
+	\end{figure}
+}
+
+% figure -> includegraphics
+% #1 [] : 表示場所, default H (Hはhtbpと一緒に使わない!)
+% #2 {} : キャプション
+% #3 [] : includegraphics のオプション, keepaspectratioは常に有効, default height=10\baselineskip
+% #4 {} : 画像のパス
+% #5 [] : ラベル, default #2
+% #6 [] : ラベルの fig: の部分, default fig:
+\NewDocumentCommand{\fig}{O{H} m O{max height=15\baselineskip} m o o}{
+	\begin{figure}[#1]
+		\centering
+		\includegraphics[keepaspectratio, max width=0.9\columnwidth, #3]{#4}
+		\caption{#2}\label{\IfValueTF{#6}{#6}{fig:}\IfValueTF{#5}{#5}{#2}}
+	\end{figure}
+}
+
+\NewDocumentCommand{\figtwo}{O{H} m o m m o o}{
+	\begin{figure}[#1]
+		\centering
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[keepaspectratio, max width=1\columnwidth, \IfValueT{#3}{#3}]{#4}
+		\end{minipage}
+		% \hspace*{0.05\columnwidth}
+		\begin{minipage}[b]{0.45\columnwidth}
+			\centering
+			\includegraphics[keepaspectratio, max width=1\columnwidth, \IfValueT{#3}{#3}]{#5}
+		\end{minipage}
+		\caption{#2}\label{\IfValueTF{#7}{#7}{fig:}\IfValueTF{#6}{#6}{#2}}
+	\end{figure}
+}
+
+\makeatletter
+% セクションなど章のタイトル+label
+% #1 {} : 章のネスト深さ。0 = chapter, 1 = section, 2 = subsection, 3 = subsubsection
+% #2 {} : 章のタイトル
+% #3 [] : タイトルにコマンドなどが入っている場合のラベル用テキスト
+\NewDocumentCommand{\sct}{m +m o}{
+	\ifthenelse{\equal{#1}{0}}{
+		% chapter
+		\IfValueTF{#3}{
+			\chapter{#2}\label{chap:#3}
+			\def\chaptername{#3}
+		}{
+			\chapter{#2}\label{chap:#2}
+			\def\chaptername{#2}
+		}
+	}{
+	\ifthenelse{\equal{#1}{1}}{
+		% section
+		\IfValueTF{#3}{
+			\section{#2}\label{sec:\chaptername:#3}
+			\def\sectionname{#3}
+		}{
+			\section{#2}\label{sec:\chaptername:#2}
+			\def\sectionname{#2}
+		}
+	}{
+	\ifthenelse{\equal{#1}{2}}{
+		% subsection
+		\IfValueTF{#3}{
+			\subsection{#2}\label{s_sec:\chaptername:\sectionname:#3}
+			\def\subsectionname{#3}
+		}{
+			\subsection{#2}\label{s_sec:\chaptername:\sectionname:#2}
+			\def\subsectionname{#2}
+		}
+	}{
+	\ifthenelse{\equal{#1}{3}}{
+		% subsubsection
+		\IfValueTF{#3}{
+			\subsubsection{#2}\label{ss_sec:\chaptername:\sectionname:\subsectionname:#3}
+			\def\subsubsectionname{#3}
+		}{
+			\subsubsection{#2}\label{ss_sec:\chaptername:\sectionname:\subsectionname:#2}
+			\def\subsubsectionname{#2}
+		}
+	}{
+		% error
+		\textcolor{red}{\Huge エラー : \textbackslash sctの第1引数は0から3の整数です @ #2}
+	}
+	}
+	}
+	}
+}
+\makeatother

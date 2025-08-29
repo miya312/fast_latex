@@ -1,0 +1,218 @@
+#!/usr/bin/env perl
+# カレントディレクトリ変更
+$do_cd = 1;
+
+# fmtlatexの呼び出し
+$pdf_mode = 3;
+$latex = 'internal fmtlatex uplatex %Z %Y %A %S %R -synctex=1 -file-line-error -halt-on-error %O';
+# $dvipdf = 'dvipdfmx %O -I 12 -C 0x20 -o %D %S'; # -I 時間画像をキャッシュする
+$dvipdf = 'dvipdfmx %O -o %D %S'; # -I 時間画像をキャッシュする
+$max_repeat = 5;
+
+# bibtex系
+# $bibtex_use=2;
+$bibtex = 'upbibtex %O %S';
+$biber = 'biber --bblencoding=utf8 -u -U --output_safechars %O %S';
+
+# index
+$makeindex = 'upmendex %O -o %D %S -s jpbase';
+
+# ヴューワ
+$dvi_previewer = ($mac ? "open %S" : ($win ? "start %S" : ""));
+$pdf_previewer = ($mac ? "open %S" : ($win ? "start %S" : ""));
+
+# 出力フォルダ指定
+$out_dir = ".";
+# 中間ファイルを別フォルダに隠しておける
+$emulate_aux = 1;
+$aux_dir = ".tex_intermediates";
+
+# 中間ファイル登録
+$clean_ext="$clean_ext run.xml";
+
+my $pwd="";
+my $win = ($^O eq "MSWin32");
+my $mac = ($^O eq "MacOS" || $^O eq "darwin");
+if ($win){
+    $pwd = `cd`;
+}elsif($mac){
+    $pwd = `pwd`;
+}else{
+    die "Error in OS check\n";
+}
+chomp $pwd;
+my $sep = ($win ? "\\" : "/");
+
+# 作業パス
+my $comdir="$pwd$sep$aux_dir";
+my $comname=".latexmk_fast";
+
+# fmtlatex メインルーチン
+{
+    # 拡張子を登録
+    $clean_ext="$clean_ext fmt";
+    my $initial = 1;
+
+    sub fmtlatex {
+        # 引数読込
+        my ($engine, $outpath, $auxpath, $basename, $texname, $jobname, @args) = @_;
+        my $options = join(' ', @args);
+
+        if($win){
+            # パスのセパレーターを変更
+            $outpath =~ s/\//\\/g;
+            $auxpath =~ s/\//\\/g;
+            $basename =~ s/\//\\/g;
+            $texname =~ s/\//\\/g;
+            $options =~ s/\//\\/g;
+        }
+
+        # 初回実行時
+        if ($initial == 1){
+            $initial = 0;
+            # フォーマット生成フラグ
+            my $flag = 0;
+            print "fmtlatex: checking if the preamble changed...\n";
+            if (&check_preamble_change($auxpath,$jobname,$texname) == 0){
+                print "fmtlatex: the preamble is not changed.\n";
+                print "fmtlatex: checking if the common fmt file is owned...\n";
+                if (&check_com_owned("$pwd$sep$texname") == 0){
+                    print "fmtlatex: the common fmt file is not owned.\n";
+                    $flag = 1;
+                }else{
+                    print "fmtlatex: the common fmt file is owned.\n";
+                }
+            }else{
+                print "fmtlatex: the preamble is changed.\n";
+                $flag = 1;
+            }
+            if ($flag == 1){
+                print "rewriting the common fmt file in ini mode...\n";
+                # フォーマット生成
+                my $iniret=Run_subst("$engine -ini $options -output-directory=\"$comdir\" -jobname=\"$comname\" \"&\"$engine mylatexformat.ltx $texname");
+                if($iniret == 0){
+                    print "fmtlatex: the common fmt file rewrited. saving preamble...\n";
+                    &memorize_preamble_change($auxpath,$jobname);
+                    &hold_com("$pwd$sep$texname");
+                }else{
+                    print "fmtlatex: failed to rewrite the common fmt file.\n";
+                    &forget_preamble_change($auxpath,$jobname);
+                    &throw_com();
+                    return $iniret;
+                }
+            }else{
+                print "keep the common fmt file.\n";
+                &forget_preamble_change($auxpath,$jobname);
+            }
+        }
+        print "fmtlatex: the common fmt file is ready, so running normal latex... \n";
+        # 通常のタイプセット
+        my $finalres = Run_subst("$engine -fmt \"$comdir$sep$comname\" $options $texname");
+        return $finalres;
+    }
+}
+
+# 共有フォーマットファイルの確認・確保・破棄
+{
+    # 確認
+    sub check_com_owned(){
+        my $path=$_[0];
+        open(my $fh, "<", "$comdir$sep$comname.info");
+        my $holder=<$fh>;
+        close($fh);
+        if($path eq $holder){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    # 確保
+    sub hold_com(){
+        my $path=$_[0];
+        open(my $fh, ">", "$comdir$sep$comname.info");
+        print $fh "$path";
+        close($fh);
+    }
+    # 破棄(生成失敗時用)
+    sub throw_com(){
+        open(my $fh, ">", "$comdir$sep$comname.info");
+        print $fh "";
+        close($fh);
+    }
+}
+
+# プリアンブル差分検知
+{
+    my $prea_ext = "prea";
+    $clean_ext="$clean_ext $prea_ext";
+
+    sub check_preamble_change{
+        my ($auxpath, $basename, $texname) = @_;
+        my $preapath="$auxpath$basename.$prea_ext";
+
+        my @nexttexname = ($texname);
+        my $res_line = "";
+        do{
+            my $tmptexname = shift(@nexttexname);
+            open(my $fh, '<', $tmptexname) or die "Error: $!\n";
+            print "Processing $tmptexname\n";
+            while(my $line = <$fh>){
+                # texファイルを一行ず読み込む
+                chomp($line);
+                $line =~ s/\s*%.*$|^\s+|\s+$//g;
+                # print "shorten line : \"$line\"\n";
+                if($line =~ /\\begin\{document\}|\\endofdump/i){  # \endofdumpまたは\begin{document}まで読み出し
+                    last;
+                }
+                if($line =~ /\\documentclass\[([^\]]+)\]\{subfiles\}|\\input\{([^}]+)\}/){
+                    # subfiles, inputがあったら対象のファイルも読み込む
+                    push(@nexttexname, $+);
+                }
+                if($line){
+                    $res_line .= $line."\n";
+                }
+            }
+            $res_line .= "\n";
+            close($fh);
+        }while(@nexttexname);
+        # system("echo \"$res_line\" >> \"$preapath.tmp\"");
+        open(my $tmpprea, ">", "$preapath.tmp") or die "$!";
+        print $tmpprea $res_line;
+        close($tmpprea);
+
+        # 比較
+        my $checkret = "";
+        if(-f "$preapath.tmp" && -f $preapath){
+            if($mac){
+                $checkret = system("diff -Bb \"$preapath.tmp\" \"$preapath\"");
+            }elsif($win){
+                my $fc_res = `fc \"$preapath.tmp\" \"$preapath\"`;
+                $fc_res =~ s/[^\n]*\n[^\n]*\n\n//; # 2行飛ばす
+                $checkret = length $fc_res;
+            }
+        }else{
+            $checkret = 100;
+        }
+        return $checkret;
+    }
+    sub forget_preamble_change{
+        my ($auxpath, $basename) = @_;
+        if($mac){
+            system("rm \"$auxpath$basename.$prea_ext.tmp\"");
+        }elsif($win){
+            system("del \"$auxpath$basename.$prea_ext.tmp\"");
+        }else{
+            die "Error in forget_preamble_change\n";
+        }
+    }
+    sub memorize_preamble_change{
+        my ($auxpath, $basename) = @_;
+        if($mac){
+            system("mv \"$auxpath$basename.$prea_ext.tmp\" \"$auxpath$basename.$prea_ext\"");
+        }elsif($win){
+            system("move \"$auxpath$basename.$prea_ext.tmp\" \"$auxpath$basename.$prea_ext\"");
+        }else{
+            die "Error in memorize_preamble_change\n";
+        }
+    }
+}

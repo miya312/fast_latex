@@ -1,0 +1,16 @@
+\documentclass[uplatex, a4paper, dvipdfmx, 12pt]{jsreport}
+\usepackage{docmute}
+\input{../setting/setting.tex}
+
+\begin{document}
+% 各章のtexを順番に読み込む
+\input{../01_intro/intro.tex}
+
+
+% biblatexパッケージを使用しない場合はこのコメントアウトされている部分を用いる
+% ※動作検証は行っていない
+% \bibliographystyle{junsrt}%日本語の場合は jabbrv などとする
+% \bibliography{../../bib/refs.bib} %bibtexファイルの読み込み auxファイルから見た相対パス
+\printbibliography[title=参考文献]
+
+\end{document}
